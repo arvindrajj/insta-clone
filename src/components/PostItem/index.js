@@ -9,72 +9,68 @@ import {Link} from 'react-router-dom'
 import './index.css'
 
 export default class PostItem extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      newUserPostDetails: props.userPostDetails,
-    }
+  state = {
+    likeStatus: false,
+    message: '',
   }
 
-  componentWillUnmount = () => {
-    const {newUserPostDetails} = this.state
-    const {postId} = newUserPostDetails
-    localStorage.setItem(`${postId}`, JSON.stringify(newUserPostDetails))
-  }
-
-  componentDidMount = async () => {
-    const {newUserPostDetails} = this.state
-    const {postId} = newUserPostDetails
-    const userPostDetails = JSON.parse(localStorage.getItem(`${postId}`))
-    await this.setState({newUserPostDetails: userPostDetails})
-  }
-
-  onToggleLikePost = async object => {
-    const {newUserPostDetails} = this.state
-    const {postId, status} = object
+  getLikeStatus = async () => {
+    const {userPostDetails} = this.props
+    const {likeStatus} = this.state
+    const {postId} = userPostDetails
     const apiUrl = `https://apis.ccbp.in/insta-share/posts/${postId}/like`
     const jwtToken = Cookies.get('jwt_token')
     const options = {
       method: 'POST',
-      body: JSON.stringify({like_status: status}),
+      body: JSON.stringify({like_status: likeStatus}),
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
     }
     const response = await fetch(apiUrl, options)
     const data = await response.json()
-    if (data.message === 'Post has been liked') {
-      await this.setState(prevState => ({
-        newUserPostDetails: {...prevState.newUserPostDetails, isLiked: true},
-      }))
-      await localStorage.setItem(
-        `${postId}`,
-        JSON.stringify({...newUserPostDetails, isLiked: true}),
-      )
-    } else if (data.message === 'Post has been disliked') {
-      await this.setState(prevState => ({
-        newUserPostDetails: {...prevState.newUserPostDetails, isLiked: false},
-      }))
-      await localStorage.setItem(
-        `${postId}`,
-        JSON.stringify({...newUserPostDetails, isLiked: false}),
-      )
+    this.setState({message: data.message})
+  }
+
+  renderLikesCount = () => {
+    const {message} = this.state
+    const {userPostDetails} = this.props
+    const {likesCount} = userPostDetails
+    let count = likesCount + 1
+    switch (message) {
+      case 'Post has been liked':
+        return count
+      case 'Post has been disliked':
+        count -= 1
+        return count
+      default:
+        return likesCount
     }
   }
 
+  onClickLikeButton = () => {
+    this.setState({likeStatus: true}, this.getLikeStatus, this.renderLikesCount)
+  }
+
+  onClickUnlikeButton = () => {
+    this.setState(
+      {likeStatus: false},
+      this.getLikeStatus,
+      this.renderLikesCount,
+    )
+  }
+
   render() {
-    const {newUserPostDetails} = this.state
+    const {userPostDetails} = this.props
+    const {likeStatus} = this.state
     const {
       userId,
       userName,
       profilePic,
       postDetails,
-      likesCount,
       createdAt,
       comments,
-      postId,
-      isLiked,
-    } = newUserPostDetails
+    } = userPostDetails
     const latestComments = comments.slice(0, 2)
     return (
       <li className="post-item-container" testid="postItem">
@@ -94,18 +90,18 @@ export default class PostItem extends Component {
         <div className="post-item-content-container">
           <div className="post-item-icons-container">
             <button className="post-item-button-el" type="button">
-              {isLiked ? (
+              {likeStatus ? (
                 <FcLike
                   testid="unLikeIcon"
                   size="20"
                   color="#F05161"
-                  onClick={() => this.onToggleLikePost({postId, status: false})}
+                  onClick={this.onClickUnlikeButton}
                 />
               ) : (
                 <BsHeart
                   testid="likeIcon"
                   size="20"
-                  onClick={() => this.onToggleLikePost({postId, status: true})}
+                  onClick={this.onClickLikeButton}
                 />
               )}
             </button>
@@ -117,22 +113,24 @@ export default class PostItem extends Component {
             </button>
           </div>
           <p className="post-item-highlighted-para">
-            {isLiked ? parseInt(likesCount) + 1 : likesCount} likes
+            {this.renderLikesCount()} likes
           </p>
           <p className="post-item-para">{postDetails.caption}</p>
-          {latestComments.map(each => {
-            const length = each.userId.length > 14
-            const wrap = length ? '...' : ''
-            return (
-              <div className="post-item-comment-container" key={each.userId}>
-                <p className="post-item-highlighted-para">
-                  {each.userId.slice(0, 14)}
-                  {wrap}
-                </p>
-                <p className="post-item-span-el">{each.comment}</p>
-              </div>
-            )
-          })}
+          <ul className="comments-ul-list">
+            {latestComments.map(each => {
+              const length = each.userId.length > 14
+              const wrap = length ? '...' : ''
+              return (
+                <li className="comments-list-item" key={each.userId}>
+                  <p className="post-item-highlighted-para">
+                    {each.userId.slice(0, 14)}
+                    {wrap}
+                  </p>
+                  <p className="post-item-span-el">{each.comment}</p>
+                </li>
+              )
+            })}
+          </ul>
           <p className="post-item-created-at-para">{createdAt}</p>
         </div>
       </li>

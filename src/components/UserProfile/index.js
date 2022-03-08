@@ -135,7 +135,7 @@ export default class UserProfile extends Component {
                 <div className="no-posts-image-container">
                   <BiCamera size="50" color="#262626" />
                 </div>
-                <h1 className="no-posts-heading">No Posts Yet</h1>
+                <h1 className="no-posts-heading">No Posts</h1>
               </div>
             )}
           </div>
@@ -152,7 +152,7 @@ export default class UserProfile extends Component {
       case 'LOADING':
         return <LoadingView />
       case 'FAILURE':
-        return <FailureView tryAgainFetch={this.fetchUserProfile()} />
+        return <FailureView tryAgainFetch={this.fetchUserProfile} />
       default:
         return null
     }

@@ -73,8 +73,14 @@
   margin-top: 0px;
   color: #262626;
 }
-.post-item-comment-container {
+.comments-ul-list {
+  padding-left: 0px;
+  list-style-type: none;
+}
+
+.comments-list-item {
   display: flex;
+  list-style-type: none;
 }
 
 .post-item-created-at-para {

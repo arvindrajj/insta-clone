@@ -148,7 +148,7 @@ export default class MyProfile extends Component {
       case 'LOADING':
         return <LoadingView />
       case 'FAILURE':
-        return <FailureView tryAgainFetch={this.fetchMyProfile()} />
+        return <FailureView tryAgainFetch={this.fetchMyProfile} />
       default:
         return null
     }

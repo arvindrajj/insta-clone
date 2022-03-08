@@ -22,6 +22,7 @@ export default class Home extends Component {
     userPostsList: [],
     userPostsApiStatus: apiStatusConstance.initial,
     searchInput: '',
+    searchStatus: false,
   }
 
   componentDidMount() {
@@ -81,7 +82,6 @@ export default class Home extends Component {
           caption: each.post_details.caption,
         },
         likesCount: each.likes_count,
-        isLiked: false,
         comments: each.comments.map(eachComment => ({
           userName: eachComment.user_name,
           userId: eachComment.user_id,
@@ -160,19 +160,24 @@ export default class Home extends Component {
   }
 
   renderUserPosts = () => {
-    const {userPostsList} = this.state
+    const {userPostsList, searchStatus} = this.state
     return (
       <>
         {userPostsList.length > 0 ? (
-          <ul className="home-user-posts-list-el">
-            {userPostsList.map(each => (
-              <PostItem
-                key={each.postId}
-                userPostDetails={each}
-                comments={each.comments}
-              />
-            ))}
-          </ul>
+          <>
+            {searchStatus && (
+              <h1 className="search-results ">Search Results</h1>
+            )}
+            <ul className="home-user-posts-list-el">
+              {userPostsList.map(each => (
+                <PostItem
+                  key={each.postId}
+                  userPostDetails={each}
+                  comments={each.comments}
+                />
+              ))}
+            </ul>
+          </>
         ) : (
           <div className="search-not-found-container">
             <img
@@ -211,7 +216,10 @@ export default class Home extends Component {
   }
 
   searchPostCaption = caption => {
-    this.setState({searchInput: caption}, this.fetchUserPosts)
+    this.setState(
+      {searchInput: caption, searchStatus: true},
+      this.fetchUserPosts,
+    )
   }
 
   render() {
